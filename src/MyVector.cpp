@@ -1,15 +1,51 @@
 #include "../include/myVector.h"
 #include <iostream>
 
-// MyVector& MyVector::operator= (const MyVector& vector)
-// {
+int* MyVector::GetData()
+{
+    return data_;
+} 
 
-// }
+MyVector& MyVector::operator= (const MyVector& otherVector)
+{
+    std::cout << "operator=\n";
+    if (this != &otherVector)
+    {
+        size_ = otherVector.size_;
+        capacity_ = otherVector.capacity_;
+        if (data_ != nullptr)
+        {
+            delete[] data_;
+        }
 
-// MyVector& MyVector::operator= (const MyVector&& vector)
-// {
+        data_ = new int[capacity_];
+        for (size_t i = 0; i < size_; i++)
+        {
+            data_[i] = otherVector.data_[i];
+        }
+        
+    }
+    return *this;
+}
 
-// }
+
+MyVector& MyVector::operator= (MyVector&& otherVector)
+{
+    if (this != &otherVector)
+    {
+        size_ = otherVector.size_;
+        capacity_ = otherVector.capacity_;
+        if (data_ != nullptr)
+        {
+            delete[] data_;
+        }
+        data_ = otherVector.data_;
+        otherVector.size_ = 0;
+        otherVector.capacity_ = 0;
+        otherVector.data_ = nullptr;
+    }
+    return *this;
+}
 
 MyVector::MyVector()
 {
@@ -45,14 +81,38 @@ MyVector::MyVector(MyVector&& otherVector) noexcept :
     size_(otherVector.size_), 
     capacity_(otherVector.capacity_)
 {
+    std::cout << "конструктор перемещения\n";
     otherVector.size_ = 0;
     otherVector.capacity_ = 0;
     otherVector.data_ = nullptr;
 }
 
 
-    // MyVector(int size);
+MyVector::MyVector(size_t size) noexcept
+{
+    data_ = new int[size];
+    size_ = 0;
+    capacity_ = size;
+    std::cout << "Конструктор с параметром\n";
+}
 
+void MyVector::Clear()
+{
+    size_ = 0;
+}
+
+bool MyVector::Empty()
+{
+    return size_ == 0;    
+}
+
+void MyVector::PopBack()
+{
+    if (size_ > 0)
+    {
+        size_--;
+    }
+}
 
 void MyVector::PushBack(int value)
 {
@@ -129,6 +189,28 @@ int MyVector::operator[] (size_t index) const
     }
 }
 
+int& MyVector::operator[] (size_t index)
+{
+    if (data_ == nullptr)
+    {
+        printf("%ld %ld %ld\n", size_, capacity_, index);
+        printf("data_ -> nullptr");
+        throw "data_ -> nullptr";
+    }
+    else if (index >= size_ )
+    {
+        printf("%ld %ld %ld\n", size_, capacity_, index);
+        printf("Выход за границы массива");
+        throw "Выход за границы массива";
+        // throw std::exception();
+    }
+    else
+    {
+        return data_[index];
+    }
+
+}
+
 int& MyVector::Front()
 {
     std::cout << "Вызов Front()\n";
@@ -162,4 +244,15 @@ void MyVector::PrintInfoMyVector() const
     }
     printf("\n");
     printf("\n");
+}
+
+
+MyVector::iterator MyVector::begin()
+{
+    return data_;
+}
+
+MyVector::iterator MyVector::end()
+{
+    return data_ + size_;
 }
