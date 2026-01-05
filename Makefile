@@ -4,52 +4,57 @@ CFLAGS := -Wall -Werror -Wextra -std=c++11
 
 SRC_DIR := src
 BUILD_DIR := build
-MY_VECTOR_DIR := MyVector
+VECTOR_DIR := vector
 LIB_DIR := lib
+INCLUDE_DIR := include
 
-VECTOR_SRS := $(wildcard $(SRC_DIR)/$(MY_VECTOR_DIR)/*.cpp)
-VECTOR_OBJ := $(patsubst $(SRC_DIR)/$(MY_VECTOR_DIR)/%.cpp, $(BUILD_DIR)/$(MY_VECTOR_DIR)/%.o, $(VECTOR_SRS))
+VECTOR_SRCS := $(wildcard $(SRC_DIR)/$(VECTOR_DIR)/*.сpp)
+VECTOR_OBJS := $(patsubst $(SRC_DIR)/$(VECTOR_DIR)/%.сpp, $(BUILD_DIR)/$(VECTOR_DIR)/%.o, $(VECTOR_SRCS))
 
-MAIN_SRC := $(wildcard $(SRC_DIR)/*.cpp)
-MAIN_OBJ := $(patsubst $(SRC_DIR)/%.cpp, $(SRC_DIR)/%.о, $(SRC))
+MAIN_SRCS := $(wildcard $(SRC_DIR)/*.cpp)
+MAIN_OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(MAIN_SRCS))
 
 # Ищет все файлы в директории по указанному шаблону и вставляет их через пробел
 # SRCS := $(wildcard $(SRC_DIR)/*.cpp)
 # patsubst что_искать, на_что_поменять, где_искать
 # OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
-BUILDS := $(BUILD_DIR)/%.o
-
-LIB_VECTOR_NAME = MyVector
+LIB_VECTOR_NAME = vector
 STATIC_LIB := $(LIB_DIR)/lib$(LIB_VECTOR_NAME).a
 SHARED_LIB := $(LIB_DIR)/lib$(LIB_VECTOR_NAME).so
 
-
 TARGET := program
+
 
 all: $(TARGET)
 
 lib: $(STATIC_LIB)
 
-$(STATIC_LIB): $(VECTOR_OBJ)
+$(STATIC_LIB): $(VECTOR_OBJS)
 	@echo "Создание статической библиотеки вектор"
-	@mkdir -p $(LIB_DIR)
-	ar rcs $@ $(VECTOR_OBJ)
+	@mkdir -p $(dir $@)
+	ar rcs $@ $(VECTOR_OBJS)
 
-
-$(TARGET): $(OBJS)
+$(TARGET): $(STATIC_LIB) $(MAIN_OBJS)
 	@echo "Создание исполняемого файла $@"
-	$(CC) $(CFLAGS) $(OBJS) -o $@
+	$(CC) $(CFLAGS) $(MAIN_OBJS) $(STATIC_LIB) -o $@
 	./$(TARGET)
 
-$(BUILD_DIR)/$(MY_VECTOR_DIR)/%.o: $(SRC_DIR)/$(MY_VECTOR_DIR)/%.cpp
-	@echo "Компиляция Myvector $< → $@"
+$(BUILD_DIR)/$(VECTOR_DIR)/%.o: $(SRC_DIR)/$(VECTOR_DIR)/%.tpp
+	@echo "Компиляция vector $< → $@"
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -Iinclude -c $< -o $@ 
+	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@ 
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@echo "Компиляция $< → $@"
-	@$(CC) $(CFLAGS) -c $< -o $@
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+
+style:
+	@echo "┏=========================================┓"
+	@echo "┃  Formatting your code for Google Style  ┃"
+	@echo "┗=========================================┛"
+	@find . \( -name '*.h' -o -name '*.cpp' \) -print0 | xargs -0 clang-format -i -style=Google
 
 rebuild: clean all
 
@@ -57,8 +62,8 @@ valgrind:
 	valgrind --tool=memcheck --leak-check=yes  ./$(TARGET)
 
 clean:
-	@echo "Удаление $(TARGET) $(OBJS)"
-	rm -rf $(TARGET) $(OBJS)
+	@echo "Удаление $(TARGET) $(VECTOR_OBJS) $(STATIC_LIB) $(MAIN_OBJS)"
+	rm -rf $(TARGET) $(VECTOR_OBJS) $(BUILD_DIR)/$(VECTOR_DIR) $(STATIC_LIB) $(MAIN_OBJS)
 
 .PHONY: clean
 # # $@ - имя цели

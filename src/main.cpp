@@ -1,12 +1,12 @@
-#include "../include/MyVector/myVector.h"
 #include <iostream>
 #include <vector>
-#include <algorithm>
 
-int main()
-{
-    MyVector v1{5};
-    v1.PushBack(13);
-    v1.PopBack();
-    return 0;
+#include "vector/vector.hpp"
+
+int main() {
+  s21::vector<int> v1{1, 2, 3};
+  s21::vector<std::string> v2{"a", "b", "c"};
+  v1.PrintInfoVector();
+  v2.PrintInfoVector();
+  std::vector<int> v3;
 }
